@@ -1492,8 +1492,9 @@
         </div>
       </div>
       <div class="rv">
-        <form action="https://api.web3forms.com/submit" method="POST" id="cform" class="cform" novalidate>
+        <form action="https://api.web3forms.com/submit" method="POST" id="cform" class="cform">
           <input type="hidden" name="access_key" value="8400eca3-2ea8-4113-a60b-d4a25974c21b" />
+          <input type="hidden" name="redirect" value="https://immze.github.io/My-Portfolio/#contact?sent=1" />
           <div class="fg"><label for="nm">Full Name</label><input type="text" id="nm" name="name" placeholder="Your name" required /></div>
           <div class="fg"><label for="em">Email Address</label><input type="email" id="em" name="email" placeholder="your@email.com" required /></div>
           <div class="fg"><label for="mg">Message</label><textarea id="mg" name="message" rows="5" placeholder="Tell me about your project or opportunity..." required></textarea></div>
@@ -2133,44 +2134,10 @@
     }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
     document.querySelectorAll('.rv').forEach(el => ro.observe(el));
 
-    document.getElementById('cform').addEventListener('submit', function (e) {
-      e.preventDefault();
-      const nm = this.name.value.trim(), em = this.email.value.trim(), mg = this.message.value.trim();
-      const st = document.getElementById('fst'), btn = document.getElementById('sbtn');
-      if (!nm || !em || !mg) { st.textContent = 'Please fill in all fields.'; st.className = 'fst err'; return; }
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { st.textContent = 'Please enter a valid email.'; st.className = 'fst err'; return; }
-
-      btn.disabled = true;
-      btn.textContent = 'Sending Message...';
-      st.textContent = '';
-      st.className = 'fst';
-
-      const formData = new FormData(this);
-
-      fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        body: formData
-      })
-      .then(async (response) => {
-        let j = await response.json();
-        if (response.status == 200) {
-          st.textContent = 'Message sent successfully! I will get back to you soon.';
-          st.className = 'fst ok';
-          this.reset();
-        } else {
-          st.textContent = j.message || 'Something went wrong. Please try again.';
-          st.className = 'fst err';
-        }
-      })
-      .catch(() => {
-        st.textContent = 'Oops! Failed to connect to server.';
-        st.className = 'fst err';
-      })
-      .finally(() => {
-        btn.disabled = false;
-        btn.textContent = 'Send Message';
-      });
-    });
+    if (window.location.search.includes('sent=1')) {
+      document.getElementById('fst').textContent = 'Message sent successfully! I will get back to you soon.';
+      document.getElementById('fst').className = 'fst ok';
+    }
   </script>
 </body>
 
