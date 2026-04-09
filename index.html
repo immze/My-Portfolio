@@ -49,8 +49,9 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500&display=swap"
     rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.1.0/css/flag-icons.min.css">
   <!-- Dark mode FOUC prevention — must run before first paint -->
-  <script>if (localStorage.getItem('dm') === '1') document.documentElement.classList.add('dark-init');</script>
+  <script>if (localStorage.getItem('dm') !== '0') document.documentElement.classList.add('dark-init');</script>
   <style>
     /* Apply dark class immediately via html.dark-init until body.dark is set by JS */
     html.dark-init body {
@@ -81,10 +82,24 @@
       height: 10px;
       border-radius: 50%;
       background: #fff;
+      /* Fallback for mix-blend-mode */
+      background: rgba(255, 255, 255, 0.8);
       mix-blend-mode: difference;
       pointer-events: none;
       z-index: 9999;
-      transition: width .2s ease, height .2s ease
+      transition: width .2s ease, height .2s ease;
+      will-change: transform, width, height
+    }
+
+    /* Fallback for browsers without mix-blend-mode support */
+    @supports not (mix-blend-mode: difference) {
+      #cursor {
+        background: #000;
+        opacity: 0.7;
+      }
+      body.dark #cursor {
+        background: #fff;
+      }
     }
 
     #cursor.big {
@@ -134,7 +149,15 @@
 
     html {
       scroll-behavior: smooth;
-      font-size: 16px
+      /* Fallback for older browsers */
+      scroll-behavior: auto;
+    }
+
+    /* Smooth scroll polyfill for older browsers */
+    @supports not (scroll-behavior: smooth) {
+      html {
+        scroll-behavior: auto;
+      }
     }
 
     body {
@@ -225,7 +248,15 @@
       box-shadow: 0 1px 20px rgba(0, 0, 0, .06)
     }
 
-    /* ── Dark-mode toggle button ────────────────────────────────────── */
+    /* ── Backdrop Filter Fallback ────────────────────────────────────── */
+    @supports not (backdrop-filter: blur(8px)) {
+      #nav {
+        background: rgba(255, 255, 255, 0.98) !important;
+      }
+      body.dark #nav {
+        background: rgba(10, 10, 10, 0.98) !important;
+      }
+    }
     #dm-toggle {
       display: flex;
       align-items: center;
@@ -565,11 +596,14 @@
 
     /* ── Kinetic text reveal ─────────────────────────────────────────── */
     .ht {
-      font-size: clamp(4rem, 10vw, 8rem);
-      font-weight: 300;
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      font-weight: 500;
+      font-family: var(--font-display);
       line-height: 1.0;
-      letter-spacing: -.03em;
+      letter-spacing: -.02em;
+      text-align: left;
       color: var(--black);
+      text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
       margin-bottom: 32px;
       /* hide entirely until JS splits it */
       opacity: 0
@@ -577,6 +611,10 @@
 
     .ht.revealed {
       opacity: 1
+    }
+
+    body.dark .ht {
+      text-shadow: 0 4px 8px rgba(255, 255, 255, 0.3), 0 2px 4px rgba(255, 255, 255, 0.2);
     }
 
     /* Each line gets an overflow:hidden curtain wrapper */
@@ -622,7 +660,8 @@
           transparent 0%,
           rgba(0, 0, 0, 0.06) 20%,
           rgba(0, 0, 0, 0.06) 80%,
-          transparent 100%)
+          transparent 100%);
+      will-change: transform
     }
 
     body.dark .pline {
@@ -638,10 +677,6 @@
     }
 
     .pline:nth-child(2) {
-      left: 50%
-    }
-
-    .pline:nth-child(3) {
       left: 78%
     }
 
@@ -655,7 +690,8 @@
       font-weight: 300;
       line-height: 1.7;
       max-width: 520px;
-      margin-bottom: 52px
+      margin-bottom: 52px;
+      transition-delay: 1s
     }
 
     .hstats {
@@ -865,18 +901,36 @@
       gap: 24px
     }
 
+    .skc, .pc, .cc {
+      /* Fallback for will-change */
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      transform-style: preserve-3d;
+      will-change: transform;
+      /* Fallback for preserve-3d */
+      transform-style: flat;
+    }
+
+    /* Modern browsers */
+    @supports (will-change: transform) and (transform-style: preserve-3d) {
+      .skc, .pc, .cc {
+        transform-style: preserve-3d;
+        will-change: transform;
+      }
+    }
+
+    .skc:hover {
+      border-color: var(--black)
+    }
+
     .skc {
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 16px;
       padding: 32px 28px;
-      transition: border-color .2s, box-shadow .2s;
-      transform-style: preserve-3d;
-      will-change: transform
-    }
-
-    .skc:hover {
-      border-color: var(--black)
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
 
     /* specular glint overlay for tilt cards */
@@ -950,8 +1004,19 @@
       display: flex;
       flex-direction: column;
       gap: 16px;
-      transform-style: preserve-3d;
-      will-change: transform
+      /* Fallback for will-change and transform-style */
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      transform-style: flat;
+      will-change: auto;
+    }
+
+    /* Modern browsers */
+    @supports (will-change: transform) and (transform-style: preserve-3d) {
+      .pc {
+        transform-style: preserve-3d;
+        will-change: transform;
+      }
     }
 
     .pc:hover {
@@ -1143,8 +1208,19 @@
       border-radius: 14px;
       padding: 24px 22px;
       transition: border-color .2s, box-shadow .2s;
-      transform-style: preserve-3d;
-      will-change: transform
+      /* Fallback for will-change and transform-style */
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      transform-style: flat;
+      will-change: auto;
+    }
+
+    /* Modern browsers */
+    @supports (will-change: transform) and (transform-style: preserve-3d) {
+      .cc {
+        transform-style: preserve-3d;
+        will-change: transform;
+      }
     }
 
     .cc:hover {
@@ -1343,7 +1419,7 @@
       background: #050504;
     }
 
-    .fi {
+    .footer-info {
       text-align: center
     }
 
@@ -1573,13 +1649,12 @@
     <!-- Parallax depth lines -->
     <div class="parallax-lines" aria-hidden="true" id="plines">
       <div class="pline" id="pline1"></div>
-      <div class="pline" id="pline2"></div>
       <div class="pline" id="pline3"></div>
     </div>
     <div class="container hc">
-      <div class="hbadge rv">Senior IT Advisor · Digital Transformation</div>
+      <div class="hbadge rv">Enterprise Architect | Digital Transformation Senior IT Advisor | Senior IT Projects Director</div>
       <!-- ht has no .rv — JS controls the reveal instead -->
-      <h1 class="ht" id="ht">Ismail<br /><span class="serif">Zidan</span></h1>
+      <h1 class="ht" id="ht">Ismail Zidan</h1>
       <p class="hsub rv">28+ years transforming public institutions through technology.<br />USAID &amp; EU-funded
         programs across Egypt, Jordan, Libya &amp; Tunisia.</p>
       <div class="hstats rv">
@@ -1737,7 +1812,25 @@
       </div>
       <div class="pg">
         <div class="pc pfeat rv">
-          <div class="pm"><span class="pcty">🇹🇳 Tunisia</span><span class="porg">DAI / USAID · FAST Project</span>
+          <div class="pm"><span class="pcty"><span class="fi fi-eg"></span> Egypt</span><span class="porg">DAI / USAID · MESR</span></div>
+          <h3>ISIPPM — National Investment Planning System</h3>
+          <p>Architected the Integrated System for Investment Planning and Project Management, linking Egypt's Ministry
+            of Planning, Ministry of Finance, and National Investment Bank. Designed comprehensive data migration
+            strategies, implemented secure government portals, and ensured alignment with Egypt Vision 2030 national
+            development goals.</p>
+          <p>Led a team of 15+ developers and consultants, delivering a scalable platform that handles 10,000+ investment
+            projects annually. Integrated advanced analytics for decision-making and established governance frameworks
+            for long-term system maintenance.</p>
+          <div class="ptags"><span>Systems Architecture</span><span>Data Migration</span><span>Gov.
+              Portals</span><span>Egypt Vision 2030</span><span>Team Leadership</span><span>Analytics</span></div>
+          <div class="pimp">
+            <div class="ii"><strong>15+</strong><span>Team members led</span></div>
+            <div class="ii"><strong>10,000+</strong><span>Projects managed annually</span></div>
+            <div class="ii"><strong>3</strong><span>Government ministries integrated</span></div>
+          </div>
+        </div>
+        <div class="pc rv">
+          <div class="pm"><span class="pcty"><span class="fi fi-tn"></span> Tunisia</span><span class="porg">DAI / USAID · FAST Project</span>
           </div>
           <h3>National Budgeting Solution — Ministry of Finance</h3>
           <p>Led end-to-end deployment of Tunisia's national budgeting platform, integrating with ADEB, INSAF, and
@@ -1751,7 +1844,7 @@
           </div>
         </div>
         <div class="pc rv">
-          <div class="pm"><span class="pcty">🇯🇴 Jordan</span><span class="porg">DAI / USAID · PFMA</span></div>
+          <div class="pm"><span class="pcty"><span class="fi fi-jo"></span> Jordan</span><span class="porg">DAI / USAID · PFMA</span></div>
           <h3>IT Modernization — ISTD, DLS &amp; GFMIS</h3>
           <p>Co-led comprehensive IT assessments of Jordan's revenue administration systems. Delivered modernization
             roadmaps, LMS platforms, Power BI dashboards, and e-Library systems for three major institutions.</p>
@@ -1762,14 +1855,14 @@
           </div>
         </div>
         <div class="pc rv">
-          <div class="pm"><span class="pcty">🇱🇾 Libya</span><span class="porg">DAI / USAID · Taqarib</span></div>
+          <div class="pm"><span class="pcty"><span class="fi fi-ly"></span> Libya</span><span class="porg">DAI / USAID · Taqarib</span></div>
           <h3>Full-Scale LMS — Ministry of Local Governance</h3>
           <p>Designed and implemented a complete LMS from scratch for civil society capacity building. Engineered full
             Linux/Apache/MySQL stack with SSL security and 100% data migration continuity.</p>
           <div class="ptags"><span>Moodle LMS</span><span>Linux Server</span><span>MySQL</span><span>SSL</span></div>
         </div>
         <div class="pc rv">
-          <div class="pm"><span class="pcty">🇯🇴 Jordan</span><span class="porg">DAI / USAID · MSP</span></div>
+          <div class="pm"><span class="pcty"><span class="fi fi-jo"></span> Jordan</span><span class="porg">DAI / USAID · MSP</span></div>
           <h3>FMIS Rollout — Ministry of Local Administration</h3>
           <p>Nationwide pre-technical assessment of MOLA offices. Authored IFMS technical specs, evaluated ERP
             proposals, deployed financial dashboards for MOLA and CVDB.</p>
@@ -1777,21 +1870,13 @@
               Finance</span></div>
         </div>
         <div class="pc rv">
-          <div class="pm"><span class="pcty">🇪🇬 Egypt</span><span class="porg">DAI / USAID · Business Egypt</span>
+          <div class="pm"><span class="pcty"><span class="fi fi-eg"></span> Egypt</span><span class="porg">DAI / USAID · Business Egypt</span>
           </div>
           <h3>IDA One-Stop-Shop Licensing Platform</h3>
           <p>Led requirements analysis and technical design for the Industrial Development Authority's OSS online
             platform. Managed RFPs, vendor compliance, and ClimaTech Run 2022 global innovation platform.</p>
           <div class="ptags"><span>OSS Platform</span><span>Procurement</span><span>Digital
               Egypt</span><span>Startups</span></div>
-        </div>
-        <div class="pc rv">
-          <div class="pm"><span class="pcty">🇪🇬 Egypt</span><span class="porg">DAI / USAID · MESR</span></div>
-          <h3>ISIPPM — National Investment Planning System</h3>
-          <p>Architected the Integrated System for Investment Planning and Project Management, linking Egypt's Ministry
-            of Planning, Ministry of Finance, and National Investment Bank.</p>
-          <div class="ptags"><span>Systems Architecture</span><span>Data Migration</span><span>Gov.
-              Portals</span><span>Egypt Vision 2030</span></div>
         </div>
       </div>
     </div>
@@ -1980,14 +2065,12 @@
         </div>
       </div>
       <div class="rv">
-        <form id="cform" class="cform" novalidate>
-          <input type="hidden" name="access_key" value="8c297ed1-3801-4ee2-b6fd-79579ddb2d42" />
+        <form action="https://api.web3forms.com/submit" method="POST" id="cform" class="cform" novalidate>
+          <input type="hidden" name="access_key" value="8400eca3-2ea8-4113-a60b-d4a25974c21b" />
           <div class="fg"><label for="nm">Full Name</label><input type="text" id="nm" name="name"
               placeholder="Your name" required /></div>
           <div class="fg"><label for="em">Email Address</label><input type="email" id="em" name="email"
               placeholder="your@email.com" required /></div>
-          <div class="fg"><label for="sb">Subject</label><input type="text" id="sb" name="subject"
-              placeholder="Project inquiry, consulting..." required /></div>
           <div class="fg"><label for="mg">Message</label><textarea id="mg" name="message" rows="5"
               placeholder="Tell me about your project or opportunity..." required></textarea></div>
           <button type="submit" class="btn btn-d btn-f" id="sbtn">Send Message</button>
@@ -1998,7 +2081,7 @@
   </section>
 
   <footer>
-    <div class="container fi">
+    <div class="container footer-info">
       <p class="fn">Ismail Zidan</p>
       <p class="fq">"Committed to advancing sustainable digital transformation across public and private sectors through
         strategic technology leadership and innovation."</p>
@@ -2006,8 +2089,8 @@
     </div>
   </footer>
 
-  <!-- Three.js for GLSL gradient mesh -->
-
+  <!-- Polyfills for older browsers -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=IntersectionObserver,fetch"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.min.js"></script>
   <script>
     /* ── GLSL Gradient Mesh (Three.js) ───────────────────────────────── */
@@ -2073,20 +2156,23 @@
       function tryWebGL() {
         try {
           const test = document.createElement('canvas');
-          return !!(window.WebGLRenderingContext &&
-            (test.getContext('webgl') || test.getContext('experimental-webgl')));
-        } catch (e) { return false; }
+          const gl = test.getContext('webgl') || test.getContext('experimental-webgl');
+          return !!(window.WebGLRenderingContext && gl);
+        } catch (e) {
+          return false;
+        }
       }
 
       function initGL() {
         const isMobile = window.matchMedia('(max-width: 768px)').matches;
-        if (isMobile || !tryWebGL() || typeof THREE === 'undefined') {
+        const isChrome = /Chrome/.test(navigator.userAgent) && !/Edg/.test(navigator.userAgent);
+        if (isMobile || !tryWebGL() || typeof THREE === 'undefined' || isChrome) {
           HERO.classList.add('gradient-fallback');
           gc.style.display = 'none';
           return;
         }
 
-        renderer = new THREE.WebGLRenderer({ canvas: gc, antialias: false });
+        renderer = new THREE.WebGLRenderer({ canvas: gc, antialias: false, powerPreference: 'low-power' });
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 
         const w = HERO.offsetWidth, h = HERO.offsetHeight;
@@ -2147,8 +2233,9 @@
       const canvas = document.getElementById('hero-canvas');
       const ctx = canvas.getContext('2d');
       const HERO = document.getElementById('hero');
-      const NODE_COUNT = 52;
-      const CONNECT_DIST = 160;  // px – max distance for drawing a line
+      const isChrome = /Chrome/.test(navigator.userAgent) && !/Edg/.test(navigator.userAgent);
+      const NODE_COUNT = isChrome ? 30 : 52;
+      const CONNECT_DIST = isChrome ? 120 : 160;  // px – max distance for drawing a line
       const BASE_SPEED = 0.30; // guaranteed minimum drift speed
       const MAX_DELTA = 50;   // ms – delta cap so mobile never burns
       const NODE_R = 2.2;
@@ -2194,25 +2281,25 @@
         lastTime = ts;
         const factor = dt / 16.67; // normalise to 60 fps
 
-        ctx.clearRect(0, 0, W, H);
-
         // --- repulsion pass: push nodes apart if too close ---
         const repDist2 = REPULSE_DIST * REPULSE_DIST;
         for (let i = 0; i < nodes.length; i++) {
+          const a = nodes[i];
           for (let j = i + 1; j < nodes.length; j++) {
-            const a = nodes[i], b = nodes[j];
+            const b = nodes[j];
             const dx = a.x - b.x, dy = a.y - b.y;
             const dist2 = dx * dx + dy * dy;
-            if (dist2 < repDist2 && dist2 > 0.01) {
-              const dist = Math.sqrt(dist2);
-              // Strength grows as particles get closer (inverse falloff)
-              const force = REPULSE_STRENGTH * (1 - dist / REPULSE_DIST);
-              const nx = dx / dist, ny = dy / dist; // unit vector a→b direction
-              a.vx += nx * force;
-              a.vy += ny * force;
-              b.vx -= nx * force;
-              b.vy -= ny * force;
-            }
+            // Early exit: skip if too far without sqrt
+            if (dist2 > repDist2) continue;
+            if (dist2 < 0.01) continue; // skip if same position
+            const dist = Math.sqrt(dist2);
+            // Strength grows as particles get closer (inverse falloff)
+            const force = REPULSE_STRENGTH * (1 - dist / REPULSE_DIST);
+            const nx = dx / dist, ny = dy / dist; // unit vector a→b direction
+            a.vx += nx * force;
+            a.vy += ny * force;
+            b.vx -= nx * force;
+            b.vy -= ny * force;
           }
         }
 
@@ -2254,24 +2341,32 @@
         mouseDX *= 0.85;
         mouseDY *= 0.85;
 
+        // Clear canvas and draw in single batch
+        ctx.clearRect(0, 0, W, H);
+        
         // --- draw connections (color computed once per frame) ---
         const isDark = BODY.classList.contains('dark');
         const lineBase = isDark ? '255,255,255' : '0,0,0';
+        const CONNECT_DIST_SQ = CONNECT_DIST * CONNECT_DIST;
+        
+        // Batch stroke operations - set style once, draw multiple lines
         for (let i = 0; i < nodes.length; i++) {
+          const a = nodes[i];
           for (let j = i + 1; j < nodes.length; j++) {
-            const a = nodes[i], b = nodes[j];
+            const b = nodes[j];
             const dx = a.x - b.x, dy = a.y - b.y;
             const dist2 = dx * dx + dy * dy;
-            if (dist2 < CONNECT_DIST * CONNECT_DIST) {
-              const dist = Math.sqrt(dist2);
-              const alpha = (1 - dist / CONNECT_DIST) * 0.09;
-              ctx.beginPath();
-              ctx.strokeStyle = `rgba(${lineBase},${alpha.toFixed(3)})`;
-              ctx.lineWidth = 1;
-              ctx.moveTo(a.x, a.y);
-              ctx.lineTo(b.x, b.y);
-              ctx.stroke();
-            }
+            // Early exit without sqrt
+            if (dist2 > CONNECT_DIST_SQ) continue;
+            
+            const dist = Math.sqrt(dist2);
+            const alpha = (1 - dist / CONNECT_DIST) * 0.09;
+            ctx.strokeStyle = `rgba(${lineBase},${alpha.toFixed(3)})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
           }
         }
 
@@ -2286,7 +2381,14 @@
       }
 
       // Track mouse MOVEMENT delta, not absolute position
+      // Throttle on Chrome for performance
+      let lastMouseTrackTime = 0;
+      const MOUSE_THROTTLE = isChrome ? 30 : 0; // ~33fps on Chrome
       window.addEventListener('mousemove', e => {
+        const now = performance.now();
+        if (isChrome && now - lastMouseTrackTime < MOUSE_THROTTLE) return;
+        lastMouseTrackTime = now;
+
         const rect = canvas.getBoundingClientRect();
         const mx = e.clientX - rect.left;
         const my = e.clientY - rect.top;
@@ -2323,6 +2425,8 @@
       const TILT_MAX = 12;    // degrees
       const TILT_PERSP = 800;  // px
       const GLINT_AMT = 0.42; // glint opacity at edge
+      const isChrome = /Chrome/.test(navigator.userAgent) && !/Edg/.test(navigator.userAgent);
+      const THROTTLE_MS = isChrome ? 16 : 0; // ~60fps on Chrome, no throttle on others
 
       function initTiltCard(card) {
         // Inject glint overlay once
@@ -2335,8 +2439,12 @@
           card.appendChild(glint);
         }
         const glint = card.querySelector('.tilt-glint');
+        let lastTiltTime = 0;
 
         card.addEventListener('mousemove', e => {
+          const now = performance.now();
+          if (isChrome && now - lastTiltTime < THROTTLE_MS) return;
+          lastTiltTime = now;
           const rect = card.getBoundingClientRect();
           const cx = rect.left + rect.width / 2;
           const cy = rect.top + rect.height / 2;
@@ -2372,7 +2480,21 @@
     })();
     /* ── End 3D Tilt ─────────────────────────────────────────────────── */
 
-    /* ── Kinetic Hero Text Reveal ────────────────────────────────────── */
+    /* ── IntersectionObserver Fallback ───────────────────────────────── */
+    if (!window.IntersectionObserver) {
+      // Simple fallback for reveal animations
+      const rvElements = document.querySelectorAll('.rv');
+      function checkVisibility() {
+        rvElements.forEach(el => {
+          const rect = el.getBoundingClientRect();
+          if (rect.top < window.innerHeight && rect.bottom > 0) {
+            el.classList.add('on');
+          }
+        });
+      }
+      window.addEventListener('scroll', checkVisibility);
+      checkVisibility();
+    }
     (function () {
       const h1 = document.getElementById('ht');
       if (!h1) return;
@@ -2437,7 +2559,6 @@
     /* ── Scroll Parallax Lines ───────────────────────────────────────── */
     (function () {
       const line1 = document.getElementById('pline1');
-      const line2 = document.getElementById('pline2');
       const line3 = document.getElementById('pline3');
       if (!line1) return;
 
@@ -2448,7 +2569,6 @@
         requestAnimationFrame(() => {
           const y = window.scrollY;
           line1.style.transform = `translateY(${-(y * 0.30)}px)`;
-          line2.style.transform = `translateY(${-(y * 0.50)}px)`;
           line3.style.transform = `translateY(${-(y * 0.70)}px)`;
           ticking = false;
         });
@@ -2506,9 +2626,34 @@
       const cur = document.getElementById('cursor');
       if (!cur || !window.matchMedia('(pointer:fine)').matches) return;
 
-      // Instant 1:1 follow — no lerp, no delay
+      const isChrome = /Chrome/.test(navigator.userAgent) && !/Edg/.test(navigator.userAgent);
+      let mouseX = 0, mouseY = 0;
+      let rafId = null;
+      let lastUpdateX = 0, lastUpdateY = 0;
+      const MIN_DELTA = isChrome ? 2 : 0; // Only update on Chrome if moved 2+ px
+
+      function updateCursor() {
+        cur.style.transform = `translate3d(calc(${mouseX}px - 50%), calc(${mouseY}px - 50%), 0)`;
+        lastUpdateX = mouseX;
+        lastUpdateY = mouseY;
+        rafId = null;
+      }
+
+      // Throttle updates: on Chrome only update if movement is significant
       document.addEventListener('mousemove', e => {
-        cur.style.transform = `translate(calc(${e.clientX}px - 50%), calc(${e.clientY}px - 50%))`;
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        if (!rafId) {
+          if (isChrome) {
+            const dx = Math.abs(mouseX - lastUpdateX);
+            const dy = Math.abs(mouseY - lastUpdateY);
+            if (dx >= MIN_DELTA || dy >= MIN_DELTA) {
+              rafId = requestAnimationFrame(updateCursor);
+            }
+          } else {
+            rafId = requestAnimationFrame(updateCursor);
+          }
+        }
       }, { passive: true });
 
       const hoverSels = 'a,button,[role="button"],.skc,.pc,.cc,.logo,#dm-toggle';
@@ -2526,7 +2671,12 @@
 
       // Apply saved preference (FOUC already prevented in <head>; sync body.dark here)
       const saved = localStorage.getItem('dm');
-      if (saved === '1') document.body.classList.add('dark');
+      if (saved === null) {
+        localStorage.setItem('dm', '1');
+        document.body.classList.add('dark');
+      } else if (saved === '1') {
+        document.body.classList.add('dark');
+      }
       // Clean up the html-level FOUC guard class
       document.documentElement.classList.remove('dark-init');
 
@@ -2689,8 +2839,31 @@
         }
       })
       .catch(error => {
-        st.textContent = 'Oops! Failed to connect to server.';
-        st.className = 'fst err';
+        // Fallback for browsers without fetch
+        if (typeof fetch === 'undefined') {
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', 'https://api.web3forms.com/submit', true);
+          xhr.setRequestHeader('Content-Type', 'application/json');
+          xhr.setRequestHeader('Accept', 'application/json');
+          xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+              if (xhr.status === 200) {
+                st.textContent = 'Message sent successfully! I will get back to you soon.';
+                st.className = 'fst ok';
+                this.reset();
+              } else {
+                st.textContent = 'Something went wrong. Please try again.';
+                st.className = 'fst err';
+              }
+              btn.disabled = false;
+              btn.textContent = 'Send Message';
+            }
+          };
+          xhr.send(json);
+        } else {
+          st.textContent = 'Oops! Failed to connect to server.';
+          st.className = 'fst err';
+        }
       })
       .finally(() => {
         btn.disabled = false;
